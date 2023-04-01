@@ -41,8 +41,6 @@ var (
 )
 
 func main() {
-	machine.InitADC()
-
 	machine.SPI1.Configure(machine.SPIConfig{
 		SCK:       machine.SPI1_SCK_PIN,
 		SDO:       machine.SPI1_SDO_PIN,
