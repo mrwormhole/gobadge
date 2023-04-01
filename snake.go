@@ -63,6 +63,30 @@ type Game struct {
 	status         uint8
 }
 
+func NewGame() *Game {
+	g := Game{
+		colors: []color.RGBA{
+			{0, 0, 0, 255},
+			{0, 200, 0, 255},
+			{250, 0, 0, 255},
+			{160, 160, 160, 255},
+		},
+		snake: Snake{
+			body: [208][2]int16{
+				{0, 3},
+				{0, 2},
+				{0, 1},
+			},
+			length:    3,
+			direction: 3,
+		},
+		appleX: -1,
+		appleY: -1,
+		status: START,
+	}
+	return &g
+}
+
 func (g *Game) Start() {
 	g.status = START
 	scoreStr := []byte("SCORE: 123")
@@ -74,15 +98,15 @@ func (g *Game) Start() {
 			display.FillScreen(g.colors[BCK])
 
 			tinyfont.WriteLine(&display, &freesans.Bold24pt7b, 0, 50, "SNAKE", g.colors[TEXT])
-			tinyfont.WriteLine(&display, &freesans.Regular12pt7b, 8, 100, "Press START", g.colors[TEXT])
+			tinyfont.WriteLine(&display, &freesans.Regular12pt7b, 8, 100, "Press A", g.colors[TEXT])
 
 			time.Sleep(2 * time.Second)
 			for g.status == START {
 				pressed, _ := buttons.Read8Input()
-				if pressed&machine.BUTTON_START_MASK > 0 {
+				if pressed&machine.BUTTON_A_MASK > 0 {
 					g.status = PLAY
 				}
-				if pressed&machine.BUTTON_SELECT_MASK > 0 {
+				if pressed&machine.BUTTON_START_MASK > 0 {
 					g.status = QUIT
 				}
 
@@ -96,16 +120,16 @@ func (g *Game) Start() {
 			scoreStr[9] = 48 + uint8((g.snake.length-3)%10)
 
 			tinyfont.WriteLine(&display, &freesans.Regular12pt7b, 8, 50, "GAME OVER", g.colors[TEXT])
-			tinyfont.WriteLine(&display, &freesans.Regular12pt7b, 8, 100, "Press START", g.colors[TEXT])
+			tinyfont.WriteLine(&display, &freesans.Regular12pt7b, 8, 100, "Press A", g.colors[TEXT])
 			tinyfont.WriteLine(&display, &tinyfont.TomThumb, 50, 120, string(scoreStr), g.colors[TEXT])
 
 			time.Sleep(2 * time.Second)
 			for g.status == GAMEOVER {
 				pressed, _ := buttons.Read8Input()
-				if pressed&machine.BUTTON_START_MASK > 0 {
+				if pressed&machine.BUTTON_A_MASK > 0 {
 					g.status = START
 				}
-				if pressed&machine.BUTTON_SELECT_MASK > 0 {
+				if pressed&machine.BUTTON_START_MASK > 0 {
 					g.status = QUIT
 				}
 
@@ -150,7 +174,7 @@ func (g *Game) Start() {
 						g.snake.direction = 3
 					}
 				}
-				if pressed&machine.BUTTON_SELECT_MASK > 0 {
+				if pressed&machine.BUTTON_START_MASK > 0 {
 					g.status = QUIT
 				}
 				g.moveSnake()

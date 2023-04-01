@@ -1,10 +1,9 @@
-module github.com/tinygo-org/gobadge
+module github.com/mrwormhole/gobadge
 
-go 1.15
+go 1.19
 
 require (
-	tinygo.org/x/drivers v0.23.0
+	tinygo.org/x/drivers v0.24.0
 	tinygo.org/x/tinydraw v0.3.0
 	tinygo.org/x/tinyfont v0.3.0
-	tinygo.org/x/tinyterm v0.2.1-0.20221003142551-ae75982d313f
 )
