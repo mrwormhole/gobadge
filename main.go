@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image/color"
 	"machine"
 	"time"
 
@@ -9,11 +10,35 @@ import (
 	"tinygo.org/x/drivers/ws2812"
 )
 
-var display st7735.Device
-var buttons shifter.Device
-var leds ws2812.Device
-var bzrPin machine.Pin
-var batterySensor machine.ADC
+const (
+	WIDTH  = 160
+	HEIGHT = 128
+)
+
+const (
+	BLACK = iota
+	WHITE
+	FUCHSIA
+	GREEN
+	RED
+	GOPHERBLUE
+)
+
+var (
+	display st7735.Device
+	buttons shifter.Device
+	leds    ws2812.Device
+	buzzer  machine.Pin
+	colors  = [...]color.RGBA{
+		{0, 0, 0, 255},
+		{255, 255, 255, 255},
+		{206, 48, 98, 255},
+		{0, 255, 0, 255},
+		{255, 0, 0, 255},
+		{1, 173, 216, 255},
+	}
+	settings Settings
+)
 
 func main() {
 	machine.InitADC()
@@ -25,10 +50,6 @@ func main() {
 		Frequency: 8000000,
 	})
 	machine.I2C0.Configure(machine.I2CConfig{SCL: machine.SCL_PIN, SDA: machine.SDA_PIN})
-
-	batterySensor = machine.ADC{Pin: machine.A6} //14 592 -> 14 400
-	batterySensor.Configure(machine.ADCConfig{})
-	batterySensor.Get()
 
 	display = st7735.New(machine.SPI1, machine.TFT_RST, machine.TFT_DC, machine.TFT_CS, machine.TFT_LITE)
 	display.Configure(st7735.Config{
@@ -42,12 +63,24 @@ func main() {
 	neo.Configure(machine.PinConfig{Mode: machine.PinOutput})
 	leds = ws2812.New(neo)
 
-	bzrPin = machine.A0
-	bzrPin.Configure(machine.PinConfig{Mode: machine.PinOutput})
+	buzzer = machine.A0
+	buzzer.Configure(machine.PinConfig{Mode: machine.PinOutput})
 
 	speaker := machine.SPEAKER_ENABLE
 	speaker.Configure(machine.PinConfig{Mode: machine.PinOutput})
 	speaker.High()
+
+	/*
+		go func() {
+			Sounds()
+		}()
+
+		go func() {
+			NeoLeds()
+		}()
+	*/
+	var sounds SoundsUI
+	var neoleds NeoLedsUI
 
 	for {
 		switch menu() {
@@ -58,10 +91,13 @@ func main() {
 			NewGame().Start()
 			break
 		case 2:
-			Leds()
+			neoleds.Start()
 			break
 		case 3:
-			Music()
+			sounds.Start()
+			break
+		case 4: // disabled due to some goroutine funkyness
+			settings.Show()
 			break
 		default:
 			break

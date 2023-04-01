@@ -1,195 +1,133 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
-	"machine"
 	"time"
 
+	"tinygo.org/x/drivers/shifter"
 	"tinygo.org/x/tinydraw"
 	"tinygo.org/x/tinyfont"
 	"tinygo.org/x/tinyfont/freesans"
 	"tinygo.org/x/tinyfont/gophers"
 )
 
-const (
-	WIDTH  = 160
-	HEIGHT = 128
-)
-
-const (
-	BLACK = iota
-	WHITE
-	RED
-)
-
-const (
-	logoDisplayTime = 10 * time.Second
-)
-
-var colors = []color.RGBA{
-	{0, 0, 0, 255},
-	{255, 255, 255, 255},
-	{255, 0, 0, 255},
-}
-
-var rainbow []color.RGBA
-var pressed uint8
-var quit bool
-
 type Badge struct {
 	rainbow []color.RGBA
+	quit    bool
 }
 
 func NewBadge() *Badge {
-	rainbow = make([]color.RGBA, 256)
+	rainbow := make([]color.RGBA, 256)
 	for i := 0; i < 256; i++ {
 		rainbow[i] = getRainbowRGB(uint8(i))
 	}
 
+	if Name == "" {
+		Name = DefaultName
+	}
+
+	if Slogan1 == "" {
+		Slogan1 = DefaultSlogan1
+	}
+
+	if Slogan2 == "" {
+		Slogan2 = DefaultSlogan2
+	}
 	return &Badge{rainbow: rainbow}
 }
 
 func (b *Badge) Draw() {
-	setNameAndTitle()
-	quit = false
-	display.FillScreen(colors[BLACK])
+	b.quit = false
+	display.FillScreen(colors[GOPHERBLUE])
 
 	for {
-		logo()
-		if quit {
+		b.logo()
+		if b.quit {
 			break
 		}
-		lv := batterySensor.Get()
-		scroll("This badge", "runs", fmt.Sprintf("%d", lv*2))
-		if quit {
+		display.FillScreen(colors[WHITE])
+		b.showSlogan(Slogan1, Slogan2)
+		if b.quit {
 			break
 		}
-		myNameIsRainbow(YourName)
-		if quit {
+		display.FillScreen(colors[GOPHERBLUE])
+		b.scrollGoBanner()
+		if b.quit {
 			break
 		}
-		blinkyRainbow(YourTitle1, YourTitle2)
-		if quit {
+		display.FillScreen(colors[WHITE])
+		b.greetSelf(Name)
+		if b.quit {
 			break
 		}
 	}
 }
 
-func myNameIs(name string) {
-	display.FillScreen(colors[WHITE])
+func (b *Badge) logo() {
+	const logoDisplayTime = 8 * time.Second
+	display.FillRectangleWithBuffer(0, 0, WIDTH, HEIGHT, logoRGBA)
+	time.Sleep(logoDisplayTime)
+}
 
-	var r int16 = 8
+func (b *Badge) greetSelf(name string) {
+	const r int16 = 8
 
-	// black corners detail
+	// black corners
 	display.FillRectangle(0, 0, r, r, colors[BLACK])
 	display.FillRectangle(0, HEIGHT-r, r, r, colors[BLACK])
 	display.FillRectangle(WIDTH-r, 0, r, r, colors[BLACK])
 	display.FillRectangle(WIDTH-r, HEIGHT-r, r, r, colors[BLACK])
 
 	// round corners
-	tinydraw.FilledCircle(&display, r, r, r, colors[RED])
-	tinydraw.FilledCircle(&display, WIDTH-r-1, r, r, colors[RED])
-	tinydraw.FilledCircle(&display, r, HEIGHT-r-1, r, colors[RED])
-	tinydraw.FilledCircle(&display, WIDTH-r-1, HEIGHT-r-1, r, colors[RED])
+	tinydraw.FilledCircle(&display, r, r, r, colors[GOPHERBLUE])
+	tinydraw.FilledCircle(&display, WIDTH-r-1, r, r, colors[GOPHERBLUE])
+	tinydraw.FilledCircle(&display, r, HEIGHT-r-1, r, colors[GOPHERBLUE])
+	tinydraw.FilledCircle(&display, WIDTH-r-1, HEIGHT-r-1, r, colors[GOPHERBLUE])
 
 	// top band
-	display.FillRectangle(r, 0, WIDTH-2*r-1, r, colors[RED])
-	display.FillRectangle(0, r, WIDTH, 26, colors[RED])
+	display.FillRectangle(r, 0, WIDTH-2*r-1, r, colors[GOPHERBLUE])
+	display.FillRectangle(0, r, WIDTH, 26, colors[GOPHERBLUE])
 
 	// bottom band
-	display.FillRectangle(r, HEIGHT-r-1, WIDTH-2*r-1, r+1, colors[RED])
-	display.FillRectangle(0, HEIGHT-2*r-1, WIDTH, r, colors[RED])
-
-	// top text : my NAME is
-	w32, _ := tinyfont.LineWidth(&freesans.Regular12pt7b, "my NAME is")
-	tinyfont.WriteLine(&display, &freesans.Regular12pt7b, (WIDTH-int16(w32))/2, 24, "my NAME is", color.RGBA{255, 255, 255, 255})
-
-	// middle text
-	w32, _ = tinyfont.LineWidth(&freesans.Bold9pt7b, name)
-	tinyfont.WriteLine(&display, &freesans.Bold9pt7b, (WIDTH-int16(w32))/2, 72, name, color.RGBA{0, 0, 0, 255})
+	display.FillRectangle(r, HEIGHT-r-1, WIDTH-2*r-1, r+1, colors[GOPHERBLUE])
+	display.FillRectangle(0, HEIGHT-2*r-1, WIDTH, r, colors[GOPHERBLUE])
 
 	// gophers fonts
-	tinyfont.WriteLine(&display, &gophers.Regular32pt, WIDTH-48, 110, "BE", color.RGBA{0, 0, 0, 255})
-}
-
-func myNameIsRainbow(name string) {
-	myNameIs(name)
+	tinyfont.WriteLine(&display, &gophers.Regular32pt, 10, 32, "BXYZWB", colors[WHITE])
+	tinyfont.WriteLine(&display, &gophers.Regular32pt, 10, 110, "AGENIV", colors[GOPHERBLUE])
 
 	w32, _ := tinyfont.LineWidth(&freesans.Bold9pt7b, name)
 	for i := 0; i < 230; i++ {
-		tinyfont.WriteLineColors(&display, &freesans.Bold9pt7b, (WIDTH-int16(w32))/2, 72, name, rainbow[i:])
+		tinyfont.WriteLineColors(&display, &freesans.Bold9pt7b, (WIDTH-int16(w32))/2, 72, name, b.rainbow[i:])
 
-		//buttons.ReadInput()
-
-		pressed, _ = buttons.Read8Input()
-		if pressed&machine.BUTTON_SELECT_MASK > 0 {
-			quit = true
+		buttons.ReadInput()
+		if buttons.Pins[shifter.BUTTON_START].Get() {
+			b.quit = true
 			break
 		}
 	}
 }
 
-func blinky(topline, bottomline string) {
-	display.FillScreen(colors[WHITE])
+func (b *Badge) scrollGoBanner() {
+	const top, mid, bottom = "KEEP CALM", "AND", " ON"
 
-	// calculate the width of the text so we could center them later
-	w32top, _ := tinyfont.LineWidth(&freesans.Bold12pt7b, topline)
-	w32bottom, _ := tinyfont.LineWidth(&freesans.Bold12pt7b, bottomline)
-	for i := int16(0); i < 10; i++ {
-		// show black text
-		tinyfont.WriteLine(&display, &freesans.Bold12pt7b, (WIDTH-int16(w32top))/2, 50, topline, colors[BLACK])
-		tinyfont.WriteLine(&display, &freesans.Bold12pt7b, (WIDTH-int16(w32bottom))/2, 100, bottomline, colors[BLACK])
+	w32top, _ := tinyfont.LineWidth(&freesans.Bold9pt7b, top)
+	w32middle, _ := tinyfont.LineWidth(&freesans.Bold9pt7b, mid)
+	w32bottomRight, _ := tinyfont.LineWidth(&freesans.Bold9pt7b, bottom)
+	w32bottomLeft, _ := tinyfont.LineWidth(&gophers.Regular32pt, "H")
 
-		// repeat the other way around
-		tinyfont.WriteLine(&display, &freesans.Bold12pt7b, (WIDTH-int16(w32top))/2, 50, topline, colors[WHITE])
-		tinyfont.WriteLine(&display, &freesans.Bold12pt7b, (WIDTH-int16(w32bottom))/2, 100, bottomline, colors[WHITE])
-
-		pressed, _ = buttons.Read8Input()
-		if pressed&machine.BUTTON_SELECT_MASK > 0 {
-			quit = true
-			break
-		}
-	}
-}
-
-func blinkyRainbow(topline, bottomline string) {
-	display.FillScreen(colors[WHITE])
-
-	// calculate the width of the text so we could center them later
-	w32top, _ := tinyfont.LineWidth(&freesans.Bold12pt7b, topline)
-	w32bottom, _ := tinyfont.LineWidth(&freesans.Bold12pt7b, bottomline)
-	for i := int16(0); i < 20; i++ {
-		// show black text
-		tinyfont.WriteLine(&display, &freesans.Bold12pt7b, (WIDTH-int16(w32top))/2, 50, topline, getRainbowRGB(uint8(i*12)))
-		tinyfont.WriteLine(&display, &freesans.Bold12pt7b, (WIDTH-int16(w32bottom))/2, 100, bottomline, getRainbowRGB(uint8(i*12)))
-
-		pressed, _ = buttons.Read8Input()
-		if pressed&machine.BUTTON_SELECT_MASK > 0 {
-			quit = true
-			break
-		}
-	}
-}
-
-func scroll(topline, middleline, bottomline string) {
-	display.FillScreen(colors[WHITE])
-
-	// calculate the width of the text, so we could center them later
-	w32top, _ := tinyfont.LineWidth(&freesans.Bold12pt7b, topline)
-	w32middle, _ := tinyfont.LineWidth(&freesans.Bold12pt7b, middleline)
-	w32bottom, _ := tinyfont.LineWidth(&freesans.Bold12pt7b, bottomline)
-	tinyfont.WriteLine(&display, &freesans.Bold12pt7b, (WIDTH-int16(w32top))/2, 34, topline, getRainbowRGB(200))
-	tinyfont.WriteLine(&display, &freesans.Bold12pt7b, (WIDTH-int16(w32middle))/2, 60, middleline, getRainbowRGB(80))
-	tinyfont.WriteLine(&display, &freesans.Bold12pt7b, (WIDTH-int16(w32bottom))/2, 100, bottomline, getRainbowRGB(120))
+	tinyfont.WriteLine(&display, &gophers.Regular32pt, (WIDTH-int16(w32middle))/2+8, 30, "P", colors[BLACK])
+	tinyfont.WriteLine(&display, &freesans.Bold9pt7b, (WIDTH-int16(w32top))/2, 40, top, colors[WHITE])
+	tinyfont.WriteLine(&display, &freesans.Bold9pt7b, (WIDTH-int16(w32middle))/2, 70, mid, colors[WHITE])
+	tinyfont.WriteLine(&display, &gophers.Regular58pt, (WIDTH-int16(w32bottomRight+w32bottomLeft+45))/2, 115, "H", colors[BLACK])
+	tinyfont.WriteLine(&display, &freesans.Bold9pt7b, (WIDTH-int16(w32bottomRight+w32bottomLeft+45))/2+45, 100, bottom, colors[WHITE])
 
 	display.SetScrollArea(0, 0)
 	for k := 0; k < 4; k++ {
 		for i := int16(159); i >= 0; i-- {
-
-			pressed, _ = buttons.Read8Input()
-			if pressed&machine.BUTTON_SELECT_MASK > 0 {
-				quit = true
+			buttons.ReadInput()
+			if buttons.Pins[shifter.BUTTON_START].Get() {
+				b.quit = true
 				break
 			}
 			display.SetScroll(i)
@@ -200,21 +138,17 @@ func scroll(topline, middleline, bottomline string) {
 	display.StopScroll()
 }
 
-func logo() {
-	display.FillRectangleWithBuffer(0, 0, WIDTH, HEIGHT, logoRGBA)
-	time.Sleep(logoDisplayTime)
-}
+func (b *Badge) showSlogan(topline, bottomline string) {
+	w32top, _ := tinyfont.LineWidth(&freesans.Regular9pt7b, topline)
+	w32bottom, _ := tinyfont.LineWidth(&freesans.Regular9pt7b, bottomline)
+	for i := int16(0); i < 20; i++ {
+		tinyfont.WriteLine(&display, &freesans.Regular9pt7b, (WIDTH-int16(w32top))/2, 50, topline, getRainbowRGB(uint8(i*12)))
+		tinyfont.WriteLine(&display, &freesans.Regular9pt7b, (WIDTH-int16(w32bottom))/2, 80, bottomline, getRainbowRGB(uint8(i*12)))
 
-func setNameAndTitle() {
-	if YourName == "" {
-		YourName = DefaultName
-	}
-
-	if YourTitle1 == "" {
-		YourTitle1 = DefaultTitle1
-	}
-
-	if YourTitle2 == "" {
-		YourTitle2 = DefaultTitle2
+		buttons.ReadInput()
+		if buttons.Pins[shifter.BUTTON_START].Get() {
+			b.quit = true
+			break
+		}
 	}
 }
