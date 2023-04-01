@@ -2,9 +2,9 @@ package main
 
 import (
 	"image/color"
-	"machine"
 	"time"
 
+	"tinygo.org/x/drivers/shifter"
 	"tinygo.org/x/tinyfont"
 	"tinygo.org/x/tinyfont/freesans"
 )
@@ -17,32 +17,30 @@ func Music() {
 	tinyfont.WriteLine(&display, &freesans.Bold9pt7b, 20, 100, "Press any key", color.RGBA{200, 0, 0, 255})
 
 	for {
-		pressed, _ := buttons.Read8Input()
-		if pressed&machine.BUTTON_SELECT_MASK > 0 {
+		buttons.ReadInput()
+		if buttons.Pins[shifter.BUTTON_SELECT].Get() {
 			break
 		}
-
-		if pressed&machine.BUTTON_START_MASK > 0 {
+		if buttons.Pins[shifter.BUTTON_START].Get() {
 			tone(5274)
 		}
-		if pressed&machine.BUTTON_A_MASK > 0 {
+		if buttons.Pins[shifter.BUTTON_A].Get() {
 			tone(1046)
 		}
-		if pressed&machine.BUTTON_B_MASK > 0 {
+		if buttons.Pins[shifter.BUTTON_B].Get() {
 			tone(1975)
 		}
-
-		if pressed&machine.BUTTON_LEFT_MASK > 0 {
+		if buttons.Pins[shifter.BUTTON_LEFT].Get() {
 			tone(329)
 		}
-		if pressed&machine.BUTTON_RIGHT_MASK > 0 {
-			tone(739)
-		}
-		if pressed&machine.BUTTON_UP_MASK > 0 {
+		if buttons.Pins[shifter.BUTTON_UP].Get() {
 			tone(369)
 		}
-		if pressed&machine.BUTTON_DOWN_MASK > 0 {
+		if buttons.Pins[shifter.BUTTON_DOWN].Get() {
 			tone(523)
+		}
+		if buttons.Pins[shifter.BUTTON_RIGHT].Get() {
+			tone(739)
 		}
 	}
 }
@@ -51,7 +49,6 @@ func tone(tone int) {
 	for i := 0; i < 10; i++ {
 		bzrPin.High()
 		time.Sleep(time.Duration(tone) * time.Microsecond)
-
 		bzrPin.Low()
 		time.Sleep(time.Duration(tone) * time.Microsecond)
 	}

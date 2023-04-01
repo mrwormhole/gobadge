@@ -63,6 +63,30 @@ type Game struct {
 	status         uint8
 }
 
+func NewGame() *Game {
+	g := Game{
+		colors: []color.RGBA{
+			{0, 0, 0, 255},
+			{0, 200, 0, 255},
+			{250, 0, 0, 255},
+			{160, 160, 160, 255},
+		},
+		snake: Snake{
+			body: [208][2]int16{
+				{0, 3},
+				{0, 2},
+				{0, 1},
+			},
+			length:    3,
+			direction: 3,
+		},
+		appleX: -1,
+		appleY: -1,
+		status: START,
+	}
+	return &g
+}
+
 func (g *Game) Start() {
 	g.status = START
 	scoreStr := []byte("SCORE: 123")

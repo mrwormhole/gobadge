@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"machine"
 	"time"
@@ -27,31 +28,40 @@ const (
 )
 
 var colors = []color.RGBA{
-	color.RGBA{0, 0, 0, 255},
-	color.RGBA{255, 255, 255, 255},
-	color.RGBA{255, 0, 0, 255},
+	{0, 0, 0, 255},
+	{255, 255, 255, 255},
+	{255, 0, 0, 255},
 }
 
 var rainbow []color.RGBA
 var pressed uint8
 var quit bool
 
-func Badge() {
-	setNameAndTitle()
-	quit = false
-	display.FillScreen(colors[BLACK])
+type Badge struct {
+	rainbow []color.RGBA
+}
 
+func NewBadge() *Badge {
 	rainbow = make([]color.RGBA, 256)
 	for i := 0; i < 256; i++ {
 		rainbow[i] = getRainbowRGB(uint8(i))
 	}
+
+	return &Badge{rainbow: rainbow}
+}
+
+func (b *Badge) Draw() {
+	setNameAndTitle()
+	quit = false
+	display.FillScreen(colors[BLACK])
 
 	for {
 		logo()
 		if quit {
 			break
 		}
-		scroll("This badge", "runs", "TINYGO")
+		lv := batterySensor.Get()
+		scroll("This badge", "runs", fmt.Sprintf("%d", lv*2))
 		if quit {
 			break
 		}
@@ -60,10 +70,6 @@ func Badge() {
 			break
 		}
 		blinkyRainbow(YourTitle1, YourTitle2)
-		if quit {
-			break
-		}
-		blinkyRainbow("Go Devroom", "UD2.218a")
 		if quit {
 			break
 		}
@@ -97,14 +103,14 @@ func myNameIs(name string) {
 
 	// top text : my NAME is
 	w32, _ := tinyfont.LineWidth(&freesans.Regular12pt7b, "my NAME is")
-	tinyfont.WriteLine(&display, &freesans.Regular12pt7b, (WIDTH-int16(w32))/2, 24, "my NAME is", colors[WHITE])
+	tinyfont.WriteLine(&display, &freesans.Regular12pt7b, (WIDTH-int16(w32))/2, 24, "my NAME is", color.RGBA{255, 255, 255, 255})
 
 	// middle text
 	w32, _ = tinyfont.LineWidth(&freesans.Bold9pt7b, name)
-	tinyfont.WriteLine(&display, &freesans.Bold9pt7b, (WIDTH-int16(w32))/2, 72, name, colors[BLACK])
+	tinyfont.WriteLine(&display, &freesans.Bold9pt7b, (WIDTH-int16(w32))/2, 72, name, color.RGBA{0, 0, 0, 255})
 
-	// gophers
-	tinyfont.WriteLineColors(&display, &gophers.Regular32pt, WIDTH-48, 110, "BE", []color.RGBA{getRainbowRGB(100), getRainbowRGB(200)})
+	// gophers fonts
+	tinyfont.WriteLine(&display, &gophers.Regular32pt, WIDTH-48, 110, "BE", color.RGBA{0, 0, 0, 255})
 }
 
 func myNameIsRainbow(name string) {
@@ -113,6 +119,9 @@ func myNameIsRainbow(name string) {
 	w32, _ := tinyfont.LineWidth(&freesans.Bold9pt7b, name)
 	for i := 0; i < 230; i++ {
 		tinyfont.WriteLineColors(&display, &freesans.Bold9pt7b, (WIDTH-int16(w32))/2, 72, name, rainbow[i:])
+
+		//buttons.ReadInput()
+
 		pressed, _ = buttons.Read8Input()
 		if pressed&machine.BUTTON_SELECT_MASK > 0 {
 			quit = true
