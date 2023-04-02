@@ -55,7 +55,7 @@ func confs() map[string]string {
 }
 ```
 
-Add a new target to the Makefile:
+Add a new target to the Taskfile:
 
 ```bash
 	go run cmd/main.go -conf=customLogo
