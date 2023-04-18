@@ -1,0 +1,35 @@
+version: '3'
+silent: true
+
+# If you are getting permission errors, have a look at this guide ASAP :) 
+# https://tinygo.org/docs/guides/tinygo-flash-errors/
+
+tasks:
+  default:
+    cmds:
+      - sudo tinygo flash -target pybadge .
+
+  flash:
+    vars:
+      CONF: '{{default "tinygo" .CONF}}' # tinygo / fathom / gcuk22 / gcuk23
+      NAME: '{{default "TALHA ALTINEL" .NAME}}'
+      SLOGAN1: '{{default "Good Things Come" .SLOGAN1}}'
+      SLOGAN2: '{{default "In Small Packages" .SLOGAN2}}'
+    cmds:
+      - sudo chmod a+rw /dev/ttyACM0 # https://tinygo.org/docs/guides/tinygo-flash-errors/
+      - go run cmd/main.go -conf={{.CONF}}
+      - tinygo flash -size short -target pybadge -ldflags="-X main.Name='{{.NAME}}' -X main.Slogan1='{{.SLOGAN1}}' -X main.Slogan2='{{.SLOGAN2}}'" .
+
+  flash-office:
+    cmds:
+      - task: flash 
+        vars:
+          CONF: fathom
+          SLOGAN1: "Good PRs Come"
+          SLOGAN2: "With Small Diffs"
+
+  flash-gophercon:
+    cmds:
+      - task: flash 
+        vars:
+          CONF: gcuk23
