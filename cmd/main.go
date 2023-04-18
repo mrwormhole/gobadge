@@ -2,14 +2,16 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"log"
 
 	"github.com/mrwormhole/gobadge/cmd/logos"
 )
 
 const (
-	gopherconUK22Logo = "./cmd/assets/gopherconuk-2022.jpg"
+	gopherconUK22Logo = "./cmd/assets/gcuk-2022.jpg"
+	gopherconUK23Logo = "./cmd/assets/gcuk-2023.jpg"
 	tinygoLogo        = "./cmd/assets/tinygo.jpg"
+	fathomLogo        = "./cmd/assets/fathom.jpg"
 )
 
 func main() {
@@ -19,7 +21,7 @@ func main() {
 	c := confs()
 	logo, ok := c[*conf]
 	if !ok {
-		fmt.Println("I do not have yet this conf in my catalog.")
+		log.Println("I do not have yet this conf in my catalog.")
 		return
 	}
 
@@ -29,6 +31,8 @@ func main() {
 func confs() map[string]string {
 	return map[string]string{
 		"gcuk22": gopherconUK22Logo,
+		"gcuk23": gopherconUK23Logo,
 		"tinygo": tinygoLogo,
+		"fathom": fathomLogo,
 	}
 }
