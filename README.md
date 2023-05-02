@@ -6,7 +6,7 @@ Important, in this fork, pressing "START" takes to main menu while "SELECT" dire
 
 ![MyCustomBadge](./badge.gif)
 
-# Compilation
+### Compilation
 
 - Run this command to compile and flash
 
@@ -33,7 +33,7 @@ task flash CONF=gcuk22
 task flash NAME="@TinyGolang" SLOGAN1="Go compiler" SLOGAN2="small places"
 ```
 
-# Custom Logo
+### Custom Logo
 
 - Create an image with a 160x128 pixels size, copy it into `cmd/assets` folder.  
 For the moment **ONLY jpeg images** are supported.  
