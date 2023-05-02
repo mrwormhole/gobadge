@@ -4,6 +4,8 @@ My custom conference badge powered by TinyGo on top of Adafruit hardware ([EdgeB
 
 Important, in this fork, pressing "START" takes to main menu while "SELECT" directs to other apps. The main tinygo/gobadge repository uses the opposite.
 
+![MyCustomBadge](./badge.gif)
+
 # Compilation
 
 - Run this command to compile and flash
