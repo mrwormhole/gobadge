@@ -33,9 +33,4 @@ tasks:
       - task: flash 
         vars:
           CONF: gcuk23
-  
-  flash-civo:
-    cmds:
-      - task: flash
-        vars:
-          CONF: civo
+          
