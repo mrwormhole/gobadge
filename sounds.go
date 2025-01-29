@@ -45,40 +45,6 @@ func (u SoundsUI) Start() {
 	}
 }
 
-// NOTE: this is only for gouroutine usage, do not use
-func Sounds() {
-	for {
-		time.Sleep(3 * time.Millisecond)
-		if !settings.SoundsEnabled {
-			continue
-		}
-
-		buttons.ReadInput()
-		if buttons.Pins[shifter.BUTTON_SELECT].Get() {
-			tone(5274)
-		}
-		if buttons.Pins[shifter.BUTTON_A].Get() {
-			tone(1046)
-		}
-		if buttons.Pins[shifter.BUTTON_B].Get() {
-			tone(1975)
-		}
-		if buttons.Pins[shifter.BUTTON_LEFT].Get() {
-			tone(329)
-		}
-		if buttons.Pins[shifter.BUTTON_UP].Get() {
-			tone(369)
-		}
-		if buttons.Pins[shifter.BUTTON_DOWN].Get() {
-			tone(523)
-		}
-		if buttons.Pins[shifter.BUTTON_RIGHT].Get() {
-			tone(739)
-		}
-		time.Sleep(3 * time.Millisecond)
-	}
-}
-
 func tone(tone int) {
 	for i := 0; i < 10; i++ {
 		buzzer.High()

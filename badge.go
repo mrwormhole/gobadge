@@ -64,7 +64,7 @@ func (b *Badge) Draw() {
 }
 
 func (b *Badge) logo() {
-	const logoDisplayTime = 8 * time.Second
+	const logoDisplayTime = 5 * time.Second
 	display.FillRectangleWithBuffer(0, 0, WIDTH, HEIGHT, logoRGBA)
 	time.Sleep(logoDisplayTime)
 }
@@ -141,14 +141,21 @@ func (b *Badge) scrollGoBanner() {
 func (b *Badge) showSlogan(topline, bottomline string) {
 	w32top, _ := tinyfont.LineWidth(&freesans.Regular9pt7b, topline)
 	w32bottom, _ := tinyfont.LineWidth(&freesans.Regular9pt7b, bottomline)
-	for i := int16(0); i < 20; i++ {
-		tinyfont.WriteLine(&display, &freesans.Regular9pt7b, (WIDTH-int16(w32top))/2, 50, topline, getRainbowRGB(uint8(i*12)))
-		tinyfont.WriteLine(&display, &freesans.Regular9pt7b, (WIDTH-int16(w32bottom))/2, 80, bottomline, getRainbowRGB(uint8(i*12)))
+	const cycles = 8
 
-		buttons.ReadInput()
-		if buttons.Pins[shifter.BUTTON_START].Get() {
-			b.quit = true
-			break
+	for cycle := 0; cycle < cycles; cycle++ {
+		for i := 0; i < 17; i++ {
+			colorOffset := uint8((i * 16) % 256)
+
+			tinyfont.WriteLine(&display, &freesans.Regular9pt7b, (WIDTH-int16(w32top))/2, 50, topline, getRainbowRGB(colorOffset))
+			tinyfont.WriteLine(&display, &freesans.Regular9pt7b, (WIDTH-int16(w32bottom))/2, 80, bottomline, getRainbowRGB(colorOffset))
+
+			buttons.ReadInput()
+			if buttons.Pins[shifter.BUTTON_START].Get() {
+				b.quit = true
+				return
+			}
+			time.Sleep(20 * time.Millisecond)
 		}
 	}
 }
