@@ -17,7 +17,6 @@ func menu() int16 {
 		"Snake",
 		"NeoLeds",
 		"Sounds",
-		//"Settings", // disabled due to some goroutine funkyness
 	}
 	display.FillScreen(bgColor)
 

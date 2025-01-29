@@ -37,7 +37,6 @@ var (
 		{255, 0, 0, 255},
 		{1, 173, 216, 255},
 	}
-	settings Settings
 )
 
 func main() {
@@ -68,15 +67,6 @@ func main() {
 	speaker.Configure(machine.PinConfig{Mode: machine.PinOutput})
 	speaker.High()
 
-	/*
-		go func() {
-			Sounds()
-		}()
-
-		go func() {
-			NeoLeds()
-		}()
-	*/
 	var sounds SoundsUI
 	var neoleds NeoLedsUI
 
@@ -93,9 +83,6 @@ func main() {
 			break
 		case 3:
 			sounds.Start()
-			break
-		case 4: // disabled due to some goroutine funkyness
-			settings.Show()
 			break
 		default:
 			break

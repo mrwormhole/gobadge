@@ -19,7 +19,7 @@ task flash
 otherwise run tinygo directly
 
 ```
-tinygo flash -target pybadge .
+tinygo flash -target gobadge .
 ```
 
 - To display a conference logo on your badge:
@@ -61,7 +61,7 @@ Add a new target to the Taskfile:
 
 ```bash
 go run cmd/main.go -conf=customLogo
-tinygo flash -target pybadge .
+tinygo flash -target gobadge .
 ```
 
 You can run:
